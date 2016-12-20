@@ -41,6 +41,9 @@ public class FlappyBird extends JComponent{
     // minimum distance from edge
     int minDistance = 200;
     
+    // speed of the game
+    int speed = 1;
+    
     
     // drawing of the game happens in here
     // we use the Graphics object, g, to perform the drawing
@@ -69,6 +72,20 @@ public class FlappyBird extends JComponent{
         
         
         // GAME DRAWING ENDS HERE
+    }
+    
+    
+    public void setPipe(int pipePosition){
+        // a random number generator
+        Random randGen = new Random();
+        // generate a random Y position
+        int pipeY = randGen.nextInt(HEIGHT - 2*minDistance) + minDistance;
+        // generate the new pipe X coordinate
+        int pipeX = topPipes[pipePosition].x;
+        pipeX = pipeX + (pipeWidth + pipeSpacing)*topPipes.length;
+        
+        bottomPipes[pipePosition].setBounds(pipeX, pipeY, pipeWidth, pipeHeight);
+        topPipes[pipePosition].setBounds(pipeX, pipeY - pipeGap - pipeHeight, pipeWidth, pipeHeight);
     }
     
     
@@ -105,6 +122,16 @@ public class FlappyBird extends JComponent{
             // all your game rules and move is done in here
             // GAME LOGIC STARTS HERE 
             
+            // get the pipes moving
+            for(int i = 0; i < topPipes.length; i++){
+                topPipes[i].x = topPipes[i].x - speed;
+                bottomPipes[i].x = bottomPipes[i].x - speed;
+                // check if a pipe is off the screen
+                if(topPipes[i].x + pipeWidth < 0){
+                    // move the pipe
+                    setPipe(i);
+                }
+            }
             
 
             // GAME LOGIC ENDS HERE 
