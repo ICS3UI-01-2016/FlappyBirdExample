@@ -3,6 +3,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Random;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -13,7 +15,7 @@ import javax.swing.JFrame;
  */
 
 
-public class FlappyBird extends JComponent{
+public class FlappyBird extends JComponent implements KeyListener{
 
     // Height and Width of our game
     static final int WIDTH = 800;
@@ -26,7 +28,15 @@ public class FlappyBird extends JComponent{
     
     // game variables
     Color skyColour = new Color(116,211,242);
-    Rectangle bird = new Rectangle(100, 300, 50, 50);
+    Rectangle bird = new Rectangle(100, 200, 50, 50);
+    int gravity = 1;
+    int dy = 0;
+    int jumpVelocity = -15;
+    
+    // jump key variable
+    boolean jump = false;
+    
+    
     Rectangle[] topPipes = new Rectangle[5];
     Rectangle[] bottomPipes = new Rectangle[5];
     
@@ -111,6 +121,8 @@ public class FlappyBird extends JComponent{
         }
         
         
+        
+        
         // the main game loop section
         // game will end if you set done = false;
         boolean done = false; 
@@ -133,6 +145,11 @@ public class FlappyBird extends JComponent{
                 }
             }
             
+            // get the bird to fall
+            // apply gravity
+            dy = dy + gravity;
+            // apply the change in y to the bird
+            bird.y = bird.y + dy;
 
             // GAME LOGIC ENDS HERE 
             
@@ -171,7 +188,10 @@ public class FlappyBird extends JComponent{
         game.setPreferredSize(new Dimension(WIDTH,HEIGHT));
         // adds the game to the window
         frame.add(game);
-         
+        
+        // add the key listener 
+        frame.addKeyListener(game);
+        
         // sets some options and size of the window automatically
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -181,5 +201,23 @@ public class FlappyBird extends JComponent{
         
         // starts my game loop
         game.run();
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+       int key = e.getKeyCode();
+       if(key == KeyEvent.VK_SPACE){
+           jump = true;
+       }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        
     }
 }
