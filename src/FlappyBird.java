@@ -29,17 +29,21 @@ public class FlappyBird extends JComponent implements KeyListener {
     Rectangle bird = new Rectangle(100, 200, 50, 50);
     int gravity = 1;
     int dy = 0;
-    int jumpVelocity = -15;
+    int jumpVelocity = -12;
 
     // jump key variable
     boolean jump = false;
     boolean lastJump = false;
 
+    // wait to start
+    boolean start = false;
+    boolean dead = false;
+
     Rectangle[] topPipes = new Rectangle[5];
     Rectangle[] bottomPipes = new Rectangle[5];
 
     // the gap between top and bottom
-    int pipeGap = 150;
+    int pipeGap = 200;
     // distance between the pipes
     int pipeSpacing = 200;
     // the width of a single pipe
@@ -50,7 +54,7 @@ public class FlappyBird extends JComponent implements KeyListener {
     int minDistance = 200;
 
     // speed of the game
-    int speed = 1;
+    int speed = 3;
 
     // drawing of the game happens in here
     // we use the Graphics object, g, to perform the drawing
@@ -77,6 +81,26 @@ public class FlappyBird extends JComponent implements KeyListener {
         g.fillRect(bird.x, bird.y, bird.width, bird.height);
 
         // GAME DRAWING ENDS HERE
+    }
+
+    public void reset() {
+        // set up the pipes
+        int pipeX = 600;
+        Random randGen = new Random();
+        for (int i = 0; i < topPipes.length; i++) {
+            // generating a random y position
+            int pipeY = randGen.nextInt(HEIGHT - 2 * minDistance) + minDistance;
+            bottomPipes[i] = new Rectangle(pipeX, pipeY, pipeWidth, pipeHeight);
+            topPipes[i] = new Rectangle(pipeX, pipeY - pipeGap - pipeHeight, pipeWidth, pipeHeight);
+            // move the pipeX value over
+            pipeX = pipeX + pipeWidth + pipeSpacing;
+        }
+
+        // resetthe bird
+        bird.y = 200;
+        dy = 0;
+        start = false;
+        dead = false;
     }
 
     public void setPipe(int pipePosition) {
@@ -121,28 +145,54 @@ public class FlappyBird extends JComponent implements KeyListener {
 
             // all your game rules and move is done in here
             // GAME LOGIC STARTS HERE 
-            // get the pipes moving
-            for (int i = 0; i < topPipes.length; i++) {
-                topPipes[i].x = topPipes[i].x - speed;
-                bottomPipes[i].x = bottomPipes[i].x - speed;
-                // check if a pipe is off the screen
-                if (topPipes[i].x + pipeWidth < 0) {
-                    // move the pipe
-                    setPipe(i);
+            if (start) {
+                // get the pipes moving
+                if (!dead) {
+                    for (int i = 0; i < topPipes.length; i++) {
+                        topPipes[i].x = topPipes[i].x - speed;
+                        bottomPipes[i].x = bottomPipes[i].x - speed;
+                        // check if a pipe is off the screen
+                        if (topPipes[i].x + pipeWidth < 0) {
+                            // move the pipe
+                            setPipe(i);
+                        }
+                    }
+                }
+
+                // get the bird to fall
+                // apply gravity
+                dy = dy + gravity;
+                // make the bird fly
+                if (jump && !lastJump && !dead) {
+                    dy = jumpVelocity;
+                }
+                lastJump = jump;
+
+                // apply the change in y to the bird
+                bird.y = bird.y + dy;
+
+                // check if bird hits top or bottom of screen
+                if (bird.y < 0) {
+                    bird.y = 0;
+                    dead = true;
+                } else if (bird.y + bird.height > HEIGHT) {
+                    dead = true;
+                    bird.y = HEIGHT - bird.height;
+                    reset();
+                }
+
+                // did the bird hit a pipe?
+                // go through all the pipes
+                for (int i = 0; i < topPipes.length; i++) {
+                    // did the bird hit one of the top pipes
+                    if (bird.intersects(topPipes[i])) {
+                        dead = true;
+                        // did the bird hit a bottom pipe
+                    } else if (bird.intersects(bottomPipes[i])) {
+                        dead = true;
+                    }
                 }
             }
-
-            // get the bird to fall
-            // apply gravity
-            dy = dy + gravity;
-            // make the bird fly
-            if (jump && !lastJump) {
-                dy = jumpVelocity;
-            }
-            lastJump = jump;
-            
-            // apply the change in y to the bird
-            bird.y = bird.y + dy;
 
             // GAME LOGIC ENDS HERE 
             // update the drawing (calls paintComponent)
@@ -202,6 +252,7 @@ public class FlappyBird extends JComponent implements KeyListener {
         int key = e.getKeyCode();
         if (key == KeyEvent.VK_SPACE) {
             jump = true;
+            start = true;
         }
     }
 
