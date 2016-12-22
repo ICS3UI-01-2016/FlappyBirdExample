@@ -1,11 +1,15 @@
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Random;
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 
@@ -30,6 +34,10 @@ public class FlappyBird extends JComponent implements KeyListener {
     int gravity = 1;
     int dy = 0;
     int jumpVelocity = -12;
+    BufferedImage birdPic = loadImage("bird.png");
+    BufferedImage background = loadImage("bg.png");
+    BufferedImage topTubePic = loadImage("toptube.png");
+    BufferedImage bottomTubePic = loadImage("bottomtube.png");
 
     // jump key variable
     boolean jump = false;
@@ -41,7 +49,11 @@ public class FlappyBird extends JComponent implements KeyListener {
 
     Rectangle[] topPipes = new Rectangle[5];
     Rectangle[] bottomPipes = new Rectangle[5];
-
+    boolean[] passedPipe = new boolean[5];
+    
+    int score = 0;
+    Font scoreFont = new Font("Arial", Font.BOLD, 42);
+    
     // the gap between top and bottom
     int pipeGap = 200;
     // distance between the pipes
@@ -67,24 +79,47 @@ public class FlappyBird extends JComponent implements KeyListener {
         // change to colour the sky
         g.setColor(skyColour);
         // draw the sky background
-        g.fillRect(0, 0, WIDTH, HEIGHT);
-
+        //g.fillRect(0, 0, WIDTH, HEIGHT);
+        g.drawImage(background, 0, 0, WIDTH, HEIGHT, null);
+                
         // draw the pipes
         g.setColor(Color.GREEN);
         for (int i = 0; i < topPipes.length; i++) {
-            g.fillRect(topPipes[i].x, topPipes[i].y, topPipes[i].width, topPipes[i].height);
-            g.fillRect(bottomPipes[i].x, bottomPipes[i].y, bottomPipes[i].width, bottomPipes[i].height);
+            //g.fillRect(topPipes[i].x, topPipes[i].y, topPipes[i].width, topPipes[i].height);
+            g.drawImage(topTubePic, topPipes[i].x, topPipes[i].y, topPipes[i].width, topPipes[i].height, null);
+            //g.fillRect(bottomPipes[i].x, bottomPipes[i].y, bottomPipes[i].width, bottomPipes[i].height);
+            g.drawImage(bottomTubePic, bottomPipes[i].x, bottomPipes[i].y, bottomPipes[i].width, bottomPipes[i].height, null);
         }
 
         // draw the bird
         g.setColor(Color.YELLOW);
-        g.fillRect(bird.x, bird.y, bird.width, bird.height);
+        
+        g.drawImage(birdPic, bird.x, bird.y, bird.width, bird.height, null);
+        //g.drawRect(bird.x, bird.y, bird.width, bird.height);
+        g.setColor(Color.WHITE);
+        g.setFont(scoreFont);
+        g.drawString("" + score, WIDTH/2, 50);
 
         // GAME DRAWING ENDS HERE
     }
 
+    public BufferedImage loadImage(String filename){
+        BufferedImage img = null;
+        try{
+            File file = new File(filename);
+            img = ImageIO.read(file);
+        }catch(Exception e){
+            // if there is an error, print it
+            e.printStackTrace();
+        }
+        return img;
+    }
+    
+    
     public void reset() {
         // set up the pipes
+        score = 0;
+        
         int pipeX = 600;
         Random randGen = new Random();
         for (int i = 0; i < topPipes.length; i++) {
@@ -94,6 +129,7 @@ public class FlappyBird extends JComponent implements KeyListener {
             topPipes[i] = new Rectangle(pipeX, pipeY - pipeGap - pipeHeight, pipeWidth, pipeHeight);
             // move the pipeX value over
             pipeX = pipeX + pipeWidth + pipeSpacing;
+            passedPipe[i] = false;
         }
 
         // resetthe bird
@@ -114,6 +150,8 @@ public class FlappyBird extends JComponent implements KeyListener {
 
         bottomPipes[pipePosition].setBounds(pipeX, pipeY, pipeWidth, pipeHeight);
         topPipes[pipePosition].setBounds(pipeX, pipeY - pipeGap - pipeHeight, pipeWidth, pipeHeight);
+        
+        passedPipe[pipePosition] = false;
     }
 
     // The main game loop
@@ -134,6 +172,7 @@ public class FlappyBird extends JComponent implements KeyListener {
             topPipes[i] = new Rectangle(pipeX, pipeY - pipeGap - pipeHeight, pipeWidth, pipeHeight);
             // move the pipeX value over
             pipeX = pipeX + pipeWidth + pipeSpacing;
+            passedPipe[i] = false;
         }
 
         // the main game loop section
@@ -156,6 +195,14 @@ public class FlappyBird extends JComponent implements KeyListener {
                             // move the pipe
                             setPipe(i);
                         }
+                    }
+                }
+                
+                // see if we passed a pipe
+                for(int i = 0; i < topPipes.length; i++){
+                    if(!passedPipe[i] && bird.x > topPipes[i].x + pipeWidth){
+                        score++;
+                        passedPipe[i] = true;
                     }
                 }
 
